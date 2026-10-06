@@ -5,6 +5,7 @@ from extensions import db
 
 
 def create_app():
+
     app = Flask(__name__)
     app.config.from_object(Config)
 
@@ -23,6 +24,8 @@ def create_app():
     @app.route('/')
     def inicio():
         return redirect(url_for('auth.login'))
+
+    import models
 
     with app.app_context():
         db.create_all()
