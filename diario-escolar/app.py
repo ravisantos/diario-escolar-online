@@ -1,20 +1,34 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, redirect, url_for
 
 from config import Config
+from extensions import db
 
-app = Flask(__name__)
-app.config.from_object(Config)
 
-db = SQLAlchemy(app)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-@app.route('/')
-def inicio():
-    return 'Diário Escolar funcionando!'
+    db.init_app(app)
 
-with app.app_context():
-    db.create_all()
+    from routes.auth import auth_bp
+    from routes.admin import admin_bp
+    from routes.professor import professor_bp
+    from routes.aluno import aluno_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(professor_bp, url_prefix='/professor')
+    app.register_blueprint(aluno_bp, url_prefix='/aluno')
+
+    @app.route('/')
+    def inicio():
+        return redirect(url_for('auth.login'))
+
+    with app.app_context():
+        db.create_all()
+
+    return app
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    create_app().run(debug=True)

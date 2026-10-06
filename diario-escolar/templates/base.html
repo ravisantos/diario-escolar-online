@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Diário Escolar{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block css %}{% endblock %}
+</head>
+<body>
+
+  {% block conteudo %}{% endblock %}
+
+  <footer id="rodape">
+    <p><small>Diário Escolar © 2026<br>Desenvolvido por: 2º DS</small></p>
+  </footer>
+
+</body>
+</html>
