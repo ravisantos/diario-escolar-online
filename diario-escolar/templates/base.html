@@ -9,6 +9,21 @@
 </head>
 <body>
 
+    {% if session.get('usuario_id') %}
+    <nav id="barra-usuario">
+      <span>{{ session['nome'] }} ({{ session['perfil'] }})</span>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+  {% endif %}
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% for categoria, texto in mensagens %}
+      <p class="mensagem {{ categoria }}">{{ texto }}</p>
+    {% endfor %}
+  {% endwith %}
+
   {% block conteudo %}{% endblock %}
 
   <footer id="rodape">
@@ -16,4 +31,4 @@
   </footer>
 
 </body>
-</html>
+</html>w

@@ -27,6 +27,9 @@ def create_app():
 
     import models
 
+    from cli import criar_admin
+    app.cli.add_command(criar_admin)
+
     with app.app_context():
         db.create_all()
 

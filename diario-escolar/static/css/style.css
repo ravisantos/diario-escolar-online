@@ -8,3 +8,26 @@ body {
     text-align: center;
     margin-top: 40px;
 }
+
+#barra-usuario {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+.mensagem {
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.mensagem.erro {
+    background: #fde2e2;
+    color: #9b1c1c;
+}
+
+.mensagem.sucesso {
+    background: #def7e5;
+    color: #14532d;
+}
+
