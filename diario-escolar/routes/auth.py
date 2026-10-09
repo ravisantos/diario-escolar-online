@@ -18,7 +18,7 @@ def login():
             flash('E-mail ou senha incorretos,', 'erro')
             return render_template('auth/login.html')
 
-        session.celar()
+        session.clear()
         session['usuario_id'] = usuario.id
         session['nome'] = usuario.nome
         session['perfil'] = usuario.perfil
@@ -30,4 +30,4 @@ def login():
 def logout():
     session.clear()
     flash('Você saiu da sua conta.', 'sucesso')
-    return redirect(url_for('auth.loguin'))
+    return redirect(url_for('auth.login'))

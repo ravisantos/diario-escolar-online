@@ -9,7 +9,7 @@ def login_obrigatorio(*perfis):
         def envoltorio(*args, **kwargs):
             if 'usuario_id' not in session:
                 flash('Faça login para continuar.', 'erro')
-                return redirect(url_for('auth_login'))
+                return redirect(url_for('auth.login'))
             if perfis and session.get('perfil') not in perfis:
                 abort(403)
             return funcao(*args, **kwargs)
