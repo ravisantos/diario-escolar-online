@@ -1,1 +1,53 @@
 {% extends 'admin/base_admin.html' %}
+{% block conteudo %}
+<h1>Matrículas em turmas</h1>
+
+{% if faltando %}
+  <p class="erro">Antes de matricular, cadastre: {{ faltando|join(', ') }}.</p>
+{% else %}
+  <form method="post">
+    <label>Aluno
+      <select name="aluno_id" required>
+        <option value="">Selecione...</option>
+        {% for aluno in alunos %}
+          <option value="{{ aluno.id }}">{{ aluno.usuario.nome }} ({{ aluno.ra }})</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Turma
+      <select name="turma_id" required>
+        <option value="">Selecione...</option>
+        {% for turma in turmas %}
+          <option value="{{ turma.id }}">{{ turma.nome }} / {{ turma.ano_letivo }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <button type="submit">Matricular</button>
+  </form>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Aluno</th><th>Nº de matrícula</th>
+      <th>Turma</th><th>Ano letivo</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in matriculas %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ m.aluno.usuario.nome }}</td>
+      <td>{{ m.aluno.ra }}</td>
+      <td>{{ m.turma.nome }}</td>
+      <td>{{ m.turma.ano_letivo }}</td>
+      <td>{{ m.status }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6">Nenhuma matrícula realizada ainda.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

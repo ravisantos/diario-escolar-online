@@ -7,10 +7,12 @@ from models.disciplina import Disciplina
 from models.turma import Turma
 from models.professor import Professor
 from models.aluno import Aluno
+from models.matricula import Matricula
 
 from routes.decorators import login_obrigatorio
 
 from services.usuarios import criar_professor, criar_aluno
+from services.matricula import matricular
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -113,7 +115,35 @@ def turmas():
 @admin_bp.route('/matriculas', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
 def matriculas():
-    return render_template('admin/matriculas.html')
+    if request.method == 'POST':
+        try:
+            matricular(
+                request.form.get('aluno_id', type=int),
+                request.form.get('turma_id', type=int),
+            )
+        except ValueError as erro:
+            flash(str(erro), 'erro')
+        else:
+            flash('Matrícula realizada.', 'sucesso')
+            return redirect(url_for('admin.matriculas'))
+
+    lista_alunos = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
+    lista_turmas = Turma.query.order_by(Turma.ano_letivo.desc(), Turma.nome).all()
+
+    faltando = []
+    if not lista_alunos:
+        faltando.append('alunos')
+    if not lista_turmas:
+        faltando.append('turmas')
+
+    lista = (Matricula.query
+             .join(Matricula.aluno).join(Aluno.usuario)
+             .order_by(Usuario.nome)
+             .all())
+
+    return render_template('admin/matriculas.html',
+                           matriculas=lista, alunos=lista_alunos,
+                           turmas=lista_turmas, faltando=faltando)
 
 # Alunos
 
@@ -137,3 +167,5 @@ def alunos():
 
     lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
     return render_template('admin/alunos.html', alunos=lista)
+
+
