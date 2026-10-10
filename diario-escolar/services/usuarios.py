@@ -1,6 +1,11 @@
+from datetime import date
+
 from extensions import db
-from models.professor import Professor
+
 from models.usuario import Usuario, PERFIS
+from models.professor import Professor
+from models.aluno import Aluno
+
 
 
 def autenticar(email, senha):
@@ -41,3 +46,26 @@ def criar_professor(nome, email, senha):
     db.session.add(professor)
     db.session.commit()
     return professor
+
+def criar_aluno(nome, email, senha, ra, data_nascimento=''):
+    """Cria o login e o cadastro do aluno num único commit."""
+    ra = ra.strip()
+    if not ra:
+        raise ValueError('Informe o RA do aluno.')
+    if Aluno.query.filter_by(ra=ra).first():
+        raise ValueError('Já existe um aluno com esse RA.')
+
+    nascimento = None
+    if data_nascimento.strip():
+        try:
+            nascimento = date.fromisoformat(data_nascimento.strip())
+        except ValueError:
+            raise ValueError('Data de nascimento inválida.')
+        if nascimento > date.today():
+            raise ValueError('A data de nascimento não pode ser no futuro.')
+
+    usuario = criar_usuario(nome, email, senha, 'aluno', salvar=False)
+    aluno = Aluno(usuario=usuario, ra=ra, data_nascimento=nascimento)
+    db.session.add(aluno)
+    db.session.commit()
+    return aluno

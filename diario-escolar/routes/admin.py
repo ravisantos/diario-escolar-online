@@ -6,10 +6,11 @@ from models.usuario import Usuario
 from models.disciplina import Disciplina
 from models.turma import Turma
 from models.professor import Professor
+from models.aluno import Aluno
 
 from routes.decorators import login_obrigatorio
 
-from services.usuarios import criar_professor
+from services.usuarios import criar_professor, criar_aluno
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -119,4 +120,20 @@ def matriculas():
 @admin_bp.route('/alunos', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
 def alunos():
-    return render_template('admin/alunos.html')
+    if request.method == 'POST':
+        try:
+            criar_aluno(
+                request.form.get('nome', ''),
+                request.form.get('email', ''),
+                request.form.get('senha', ''),
+                request.form.get('ra', ''),
+                request.form.get('data_nascimento', ''),
+            )
+        except ValueError as erro:
+            flash(str(erro), 'erro')
+        else:
+            flash('Aluno cadastrado.', 'sucesso')
+            return redirect(url_for('admin.alunos'))
+
+    lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
+    return render_template('admin/alunos.html', alunos=lista)
