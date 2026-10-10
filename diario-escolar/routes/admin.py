@@ -2,9 +2,12 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from extensions import db
 from models.disciplina import Disciplina
+from models.turma import Turma
 from routes.decorators import login_obrigatorio
 
 admin_bp = Blueprint('admin', __name__)
+
+TURNOS = ('Manhã', 'Tarde', 'Noite', 'Integral')  # Lista de turnos
 
 # Rotas para os templates do painel admin:
 
@@ -55,7 +58,29 @@ def professores():
 @admin_bp.route('/turmas', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
 def turmas():
-    return render_template('admin/turmas.html')
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()
+        ano = request.form.get('ano_letivo', type=int)
+        turno = request.form.get('turno', '')
+
+        if not nome:
+            flash('Informe o nome da turma.', 'erro')
+        elif ano is None or not 2000 <= ano <= 2100:
+            flash('Informe um ano letivo entre 2000 e 2100.', 'erro')
+        elif turno not in TURNOS:
+            flash('Escolha um turno.', 'erro')
+        elif Turma.query.filter_by(nome=nome, ano_letivo=ano).first():
+            flash('Já existe uma turma com esse nome nesse ano letivo.', 'erro')
+        else:
+            db.session.add(Turma(nome=nome, ano_letivo=ano, turno=turno))
+            db.session.commit()
+            flash('Turma criada.', 'sucesso')
+            return redirect(url_for('admin.turmas'))
+
+    lista = Turma.query.order_by(Turma.ano_letivo.desc(), Turma.nome).all()
+    return render_template('admin/turmas.html', turmas=lista, turnos=TURNOS)
+
+
 
 # Matrículas
 
