@@ -1,6 +1,9 @@
 {% extends 'admin/base_admin.html' %}
-{% block conteudo %}
-<h1>Matrículas em turmas</h1>
+
+{% block titulo %}Matrículas{% endblock %}
+
+{% block conteudo_admin %}
+  <h1>Matrículas em turmas</h1>
 
 {% if faltando %}
   <p class="erro">Antes de matricular, cadastre: {{ faltando|join(', ') }}.</p>

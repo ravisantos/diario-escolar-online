@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from extensions import db
 
+from models.alocacao import Alocacao
 from models.usuario import Usuario
 from models.disciplina import Disciplina
 from models.turma import Turma
@@ -53,7 +54,50 @@ def disciplinas():
 @admin_bp.route('/alocacoes', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
 def alocacoes():
-    return render_template('admin/alocacoes.html')
+    lista_turmas = Turma.query.order_by(Turma.ano_letivo.desc(), Turma.nome).all()
+    lista_disciplinas = Disciplina.query.order_by(Disciplina.nome).all()
+    lista_professores = Professor.query.join(Usuario).order_by(Usuario.nome).all()
+
+    if request.method == 'POST':
+        turma_id = request.form.get('turma_id', type=int)
+        disciplina_id = request.form.get('disciplina_id', type=int)
+        professor_id = request.form.get('professor_id', type=int)
+
+        if not (turma_id and disciplina_id and professor_id):
+            flash('Escolha a turma, a disciplina e o professor.', 'erro')
+        elif not (db.session.get(Turma, turma_id)
+                  and db.session.get(Disciplina, disciplina_id)
+                  and db.session.get(Professor, professor_id)):
+            flash('Turma, disciplina ou professor inválido.', 'erro')
+        elif Alocacao.query.filter_by(turma_id=turma_id, disciplina_id=disciplina_id).first():
+            flash('Essa disciplina já tem professor nessa turma.', 'erro')
+        else:
+            db.session.add(Alocacao(turma_id=turma_id,
+                                    disciplina_id=disciplina_id,
+                                    professor_id=professor_id))
+            db.session.commit()
+            flash('Alocação criada.', 'sucesso')
+            return redirect(url_for('admin.alocacoes'))
+
+    faltando = []
+    if not lista_turmas:
+        faltando.append('turmas')
+    if not lista_disciplinas:
+        faltando.append('disciplinas')
+    if not lista_professores:
+        faltando.append('professores')
+
+    lista = (Alocacao.query
+             .join(Turma).join(Disciplina)
+             .order_by(Turma.ano_letivo.desc(), Turma.nome, Disciplina.nome)
+             .all())
+
+    return render_template('admin/alocacoes.html',
+                           alocacoes=lista,
+                           turmas=lista_turmas,
+                           disciplinas=lista_disciplinas,
+                           professores=lista_professores,
+                           faltando=faltando)
 
 # Professores
 

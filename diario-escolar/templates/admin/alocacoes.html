@@ -1,1 +1,58 @@
 {% extends 'admin/base_admin.html' %}
+
+{% block titulo %}Alocações{% endblock %}
+
+{% block conteudo_admin %}
+  <h1>Alocações</h1>
+  <p>Aqui você define qual professor dá qual disciplina em qual turma.</p>
+
+  {% if faltando %}
+    <p class="mensagem erro">Antes de criar uma alocação, cadastre: {{ faltando|join(', ') }}.</p>
+  {% else %}
+    <form method="post">
+      <label for="turma_id">Turma:</label>
+      <select id="turma_id" name="turma_id" required>
+        <option value="">Escolha...</option>
+        {% for turma in turmas %}
+          <option value="{{ turma.id }}">{{ turma.nome }} / {{ turma.ano_letivo }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="disciplina_id">Disciplina:</label>
+      <select id="disciplina_id" name="disciplina_id" required>
+        <option value="">Escolha...</option>
+        {% for disciplina in disciplinas %}
+          <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="professor_id">Professor:</label>
+      <select id="professor_id" name="professor_id" required>
+        <option value="">Escolha...</option>
+        {% for professor in professores %}
+          <option value="{{ professor.id }}">{{ professor.usuario.nome }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Criar alocação</button>
+    </form>
+  {% endif %}
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Turma</th><th>Disciplina</th><th>Professor</th></tr>
+    </thead>
+    <tbody>
+      {% for alocacao in alocacoes %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ alocacao.turma.nome }} / {{ alocacao.turma.ano_letivo }}</td>
+          <td>{{ alocacao.disciplina.nome }}</td>
+          <td>{{ alocacao.professor.usuario.nome }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">Nenhuma alocação cadastrada ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
