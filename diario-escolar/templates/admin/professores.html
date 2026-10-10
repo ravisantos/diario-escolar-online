@@ -1,1 +1,37 @@
 {% extends 'admin/base_admin.html' %}
+
+{% block titulo %}Professores{% endblock %}
+
+{% block conteudo_admin %}
+  <h1>Professores</h1>
+
+  <form method="post">
+    <label for="nome">Nome completo:</label>
+    <input type="text" id="nome" name="nome" required>
+
+    <label for="email">E-mail (será o login):</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="senha">Senha provisória (mínimo 6 caracteres):</label>
+    <input type="text" id="senha" name="senha" minlength="6" required>
+
+    <button type="submit">Cadastrar professor</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Nome</th><th>E-mail</th></tr>
+    </thead>
+    <tbody>
+      {% for professor in professores %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ professor.usuario.nome }}</td>
+          <td>{{ professor.usuario.email }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3">Nenhum professor cadastrado ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

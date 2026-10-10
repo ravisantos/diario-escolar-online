@@ -1,9 +1,15 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from extensions import db
+
+from models.usuario import Usuario
 from models.disciplina import Disciplina
 from models.turma import Turma
+from models.professor import Professor
+
 from routes.decorators import login_obrigatorio
+
+from services.usuarios import criar_professor
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -51,7 +57,26 @@ def alocacoes():
 @admin_bp.route('/professores', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
 def professores():
-    return render_template('admin/professores.html')
+    if request.method == 'POST':
+        nome = request.form.get('nome', '')
+        email = request.form.get('email', '')
+        senha = request.form.get('senha', '')
+
+        try:
+            criar_professor(
+                request.form.get('nome', ''),
+                request.form.get('email', ''),
+                request.form.get('senha', '')
+            )
+        except ValueError as erro:
+            flash(str(erro), 'erro')
+
+        else:
+            flash('Professor cadastrado', 'sucesso')
+            return redirect(url_for('admin.professores'))
+
+    lista = Professor.query.join(Usuario).order_by(Usuario.nome).all()
+    return render_template('admin/professores.html', professores=lista)
 
 # Turmas
 
