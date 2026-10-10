@@ -45,9 +45,46 @@ def disciplinas():
             db.session.commit()
             flash(f'Disciplina {nome} criada.', 'sucesso')
             return redirect(url_for('admin.disciplinas'))
+        
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Disciplina, editar_id)
 
     lista = Disciplina.query.order_by(Disciplina.nome).all()
-    return render_template('admin/disciplinas.html', disciplinas=lista)
+    return render_template('admin/disciplinas.html', disciplinas=lista, editando=editando)
+
+@admin_bp.route('/disciplinas/<int:disciplina_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_disciplina(disciplina_id):
+    disciplina = db.get_or_404(Disciplina, disciplina_id)
+    nome = request.form.get('nome', '').strip()
+    outra = Disciplina.query.filter_by(nome=nome).first()
+
+    if not nome:
+        flash('Informe o nome da disciplina.', 'erro')
+        return redirect(url_for('admin.disciplinas', editar=disciplina.id))
+    if outra and outra.id != disciplina.id:
+        flash('Já existe uma disciplina com esse nome.', 'erro')
+        return redirect(url_for('admin.disciplinas', editar=disciplina.id))
+
+    disciplina.nome = nome
+    db.session.commit()
+    flash('Disciplina atualizada.', 'sucesso')
+    return redirect(url_for('admin.disciplinas'))
+
+@admin_bp.route('/disciplinas/<int:disciplina_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_disciplina(disciplina_id):
+    disciplina = db.get_or_404(Disciplina, disciplina_id)
+
+    if disciplina.alocacoes:
+        flash('Não dá para excluir: a disciplina já está alocada a um professor em alguma turma.', 'erro')
+    else:
+        db.session.delete(disciplina)
+        db.session.commit()
+        flash('Disciplina excluída.', 'sucesso')
+    return redirect(url_for('admin.disciplinas'))
 
 # Alocações
 

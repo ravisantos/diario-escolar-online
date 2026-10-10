@@ -5,21 +5,40 @@
 {% block conteudo_admin %}
   <h1>Disciplinas</h1>
 
-  <form method="post">
+  <form method="post"
+        action="{{ url_for('admin.editar_disciplina', disciplina_id=editando.id) if editando else url_for('admin.disciplinas') }}">
+    <h2>{{ 'Editar disciplina' if editando else 'Nova disciplina' }}</h2>
+
     <label for="nome">Nome da disciplina:</label>
-    <input type="text" id="nome" name="nome" required>
-    <button type="submit">Criar disciplina</button>
+    <input type="text" id="nome" name="nome" required
+           value="{{ editando.nome if editando else '' }}">
+
+    <button type="submit">{{ 'Salvar alterações' if editando else 'Criar disciplina' }}</button>
+    {% if editando %}
+      <a href="{{ url_for('admin.disciplinas') }}">Cancelar</a>
+    {% endif %}
   </form>
 
   <table>
     <thead>
-      <tr><th>Disciplinas</th></tr>
+      <tr><th>#</th><th>Disciplina</th><th>Ações</th></tr>
     </thead>
     <tbody>
       {% for disciplina in disciplinas %}
-        <tr><td>{{ disciplina.nome }}</td></tr>
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ disciplina.nome }}</td>
+          <td>
+            <a href="{{ url_for('admin.disciplinas', editar=disciplina.id) }}">Editar</a>
+            <form method="post"
+                  action="{{ url_for('admin.excluir_disciplina', disciplina_id=disciplina.id) }}"
+                  onsubmit="return confirm('Excluir esta disciplina?');">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
+        </tr>
       {% else %}
-        <tr><td>Nenhuma disciplina cadastrada ainda.</td></tr>
+        <tr><td colspan="3">Nenhuma disciplina cadastrada ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>
