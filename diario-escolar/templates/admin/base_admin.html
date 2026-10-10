@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block conteudo %}
+
+<aside>
+  <nav id="menu-admin">
+    <a href="{{ url_for('admin.alocacoes') }}" target="_self">Alocações</a>
+    <a href="{{ url_for('admin.alunos') }}" target="_self">Alunos</a>
+    <a href="{{ url_for('admin.dashboard') }}" target="_self">Início</a>
+    <a href="{{ url_for('admin.disciplinas') }}" target="_self">Disciplinas</a>
+    <a href="{{ url_for('admin.professores') }}" target="_self">Professores</a>
+    <a href="{{ url_for('admin.turmas') }}" target="_self">Turmas</a>    
+  </nav>
+</aside>
+
+  {% block conteudo_admin %}{% endblock %}
+{% endblock %}
