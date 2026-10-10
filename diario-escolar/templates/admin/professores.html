@@ -18,9 +18,14 @@
     <button type="submit">Cadastrar professor</button>
   </form>
 
-  <table>
+<table>
     <thead>
-      <tr><th>#</th><th>Nome</th><th>E-mail</th></tr>
+      <tr>
+        <th>#</th>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Disciplinas</th>
+      </tr>
     </thead>
     <tbody>
       {% for professor in professores %}
@@ -28,10 +33,17 @@
           <td>{{ loop.index }}</td>
           <td>{{ professor.usuario.nome }}</td>
           <td>{{ professor.usuario.email }}</td>
+          <td>
+            {% for alocacao in professor.alocacoes %}
+              {{ alocacao.disciplina.nome }} ({{ alocacao.turma.nome }}){% if not loop.last %}, {% endif %}
+            {% else %}
+              —
+            {% endfor %}
+          </td>
         </tr>
       {% else %}
-        <tr><td colspan="3">Nenhum professor cadastrado ainda.</td></tr>
+        <tr><td colspan="4">Nenhum professor cadastrado ainda.</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+</table>
 {% endblock %}
