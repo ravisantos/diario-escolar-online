@@ -185,11 +185,55 @@ def turmas():
             db.session.commit()
             flash('Turma criada.', 'sucesso')
             return redirect(url_for('admin.turmas'))
+        
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Turma, editar_id)
 
     lista = Turma.query.order_by(Turma.ano_letivo.desc(), Turma.nome).all()
-    return render_template('admin/turmas.html', turmas=lista, turnos=TURNOS)
+    return render_template('admin/turmas.html', turmas=lista, turnos=TURNOS, editando=editando)
+
+@admin_bp.route('/turmas/<int:turma_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_turma(turma_id):
+    turma = db.get_or_404(Turma, turma_id)
+    nome = request.form.get('nome', '').strip()
+    ano = request.form.get('ano_letivo', type=int)
+    turno = request.form.get('turno', '')
+    outra = Turma.query.filter_by(nome=nome, ano_letivo=ano).first()
+
+    if not nome:
+        flash('Informe o nome da turma.', 'erro')
+    elif ano is None or not 2000 <= ano <= 2100:
+        flash('Informe um ano letivo entre 2000 e 2100.', 'erro')
+    elif turno not in TURNOS:
+        flash('Escolha um turno.', 'erro')
+    elif outra and outra.id != turma.id:
+        flash('Já existe uma turma com esse nome nesse ano letivo.', 'erro')
+    else:
+        turma.nome = nome
+        turma.ano_letivo = ano
+        turma.turno = turno
+        db.session.commit()
+        flash('Turma atualizada.', 'sucesso')
+        return redirect(url_for('admin.turmas'))
+
+    return redirect(url_for('admin.turmas', editar=turma.id))
 
 
+@admin_bp.route('/turmas/<int:turma_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_turma(turma_id):
+    turma = db.get_or_404(Turma, turma_id)
+
+    if turma.alocacoes or turma.matriculas:
+        flash('Não dá para excluir: a turma tem disciplinas alocadas ou alunos matriculados.', 'erro')
+    else:
+        db.session.delete(turma)
+        db.session.commit()
+        flash('Turma excluída.', 'sucesso')
+    return redirect(url_for('admin.turmas'))
 
 # Matrículas
 
