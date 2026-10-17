@@ -12,7 +12,7 @@ from models.matricula import Matricula
 
 from routes.decorators import login_obrigatorio
 
-from services.usuarios import criar_professor, criar_aluno
+from services.usuarios import criar_professor, criar_aluno, editar_usuario
 from services.matricula import matricular
 
 admin_bp = Blueprint('admin', __name__)
@@ -159,8 +159,47 @@ def professores():
             flash('Professor cadastrado', 'sucesso')
             return redirect(url_for('admin.professores'))
 
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Professor, editar_id)
+
     lista = Professor.query.join(Usuario).order_by(Usuario.nome).all()
-    return render_template('admin/professores.html', professores=lista)
+    return render_template('admin/professores.html', professores=lista, editando=editando)
+
+@admin_bp.route('/professores/<int:professor_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_professor(professor_id):
+    professor = db.get_or_404(Professor, professor_id)
+    try:
+        editar_usuario(
+            professor.usuario,
+            request.form.get('nome', ''),
+            request.form.get('email', ''),
+            request.form.get('senha', ''),
+        )
+    except ValueError as erro:
+        db.session.rollback()
+        flash(str(erro), 'erro')
+        return redirect(url_for('admin.professores', editar=professor.id))
+
+    flash(f'Professor {professor.usuario.nome} atualizado.', 'sucesso')
+    return redirect(url_for('admin.professores'))
+
+
+@admin_bp.route('/professores/<int:professor_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_professor(professor_id):
+    professor = db.get_or_404(Professor, professor_id)
+
+    if professor.alocacoes:
+        flash('Não é possível excluir: o professor tem disciplinas alocadas. Remova as alocações antes.', 'erro')
+    else:
+        db.session.delete(professor)
+        db.session.delete(professor.usuario)
+        db.session.commit()
+        flash(f'Professor {professor.usuario.nome} excluído.', 'sucesso')
+    return redirect(url_for('admin.professores'))
 
 # Turmas
 
@@ -216,7 +255,7 @@ def editar_turma(turma_id):
         turma.ano_letivo = ano
         turma.turno = turno
         db.session.commit()
-        flash('Turma atualizada.', 'sucesso')
+        flash(f'Turma {turma.nome} atualizada.', 'sucesso')
         return redirect(url_for('admin.turmas'))
 
     return redirect(url_for('admin.turmas', editar=turma.id))
@@ -228,7 +267,7 @@ def excluir_turma(turma_id):
     turma = db.get_or_404(Turma, turma_id)
 
     if turma.alocacoes or turma.matriculas:
-        flash('Não dá para excluir: a turma tem disciplinas alocadas ou alunos matriculados.', 'erro')
+        flash('Não é possível excluir: a turma tem disciplinas alocadas ou alunos matriculados.', 'erro')
     else:
         db.session.delete(turma)
         db.session.commit()

@@ -38,6 +38,30 @@ def criar_usuario(nome, email, senha, perfil, salvar=True):
         db.session.commit()
     return usuario
 
+def editar_usuario(usuario, nome, email, senha='', salvar=True):
+    """Atualiza nome, e-mail e (opcionalmente) a senha. Senha vazia = mantém a atual."""
+    nome = nome.strip()
+    email = email.strip().lower()
+
+    if not nome:
+        raise ValueError('Informe o nome.')
+    if '@' not in email:
+        raise ValueError('Informe um e-mail válido.')
+
+    outro = Usuario.query.filter_by(email=email).first()
+    if outro and outro.id != usuario.id:
+        raise ValueError('Já existe um usuário com esse e-mail.')
+
+    if senha:
+        if len(senha) < 6:
+            raise ValueError('A senha precisa ter pelo menos 6 caracteres.')
+        usuario.definir_senha(senha)
+
+    usuario.nome = nome
+    usuario.email = email
+    if salvar:
+        db.session.commit()
+    return usuario
 
 def criar_professor(nome, email, senha):
     """Cria o login e o cadastro do professor num único commit."""

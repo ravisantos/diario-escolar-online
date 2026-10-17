@@ -5,17 +5,27 @@
 {% block conteudo_admin %}
   <h1>Professores</h1>
 
-  <form method="post">
+  <form method="post"
+        action="{{ url_for('admin.editar_professor', professor_id=editando.id) if editando else url_for('admin.professores') }}">
+    <h2>{{ 'Editar professor' if editando else 'Novo professor' }}</h2>
+
     <label for="nome">Nome completo:</label>
-    <input type="text" id="nome" name="nome" required>
+    <input type="text" id="nome" name="nome" required
+           value="{{ editando.usuario.nome if editando else '' }}">
 
     <label for="email">E-mail (será o login):</label>
-    <input type="email" id="email" name="email" required>
+    <input type="email" id="email" name="email" required
+           value="{{ editando.usuario.email if editando else '' }}">
 
-    <label for="senha">Senha provisória (mínimo 6 caracteres):</label>
-    <input type="text" id="senha" name="senha" minlength="6" required>
+    <label for="senha">
+      {{ 'Nova senha (deixe em branco para manter a atual)' if editando else 'Senha provisória (mínimo 6 caracteres)' }}:
+    </label>
+    <input type="text" id="senha" name="senha" minlength="6" {{ '' if editando else 'required' }}>
 
-    <button type="submit">Cadastrar professor</button>
+    <button type="submit">{{ 'Salvar alterações' if editando else 'Cadastrar professor' }}</button>
+    {% if editando %}
+      <a href="{{ url_for('admin.professores') }}">Cancelar</a>
+    {% endif %}
   </form>
 
 <table>
@@ -40,9 +50,17 @@
               —
             {% endfor %}
           </td>
+          <td>
+            <a href="{{ url_for('admin.professores', editar=professor.id) }}">Editar</a>
+            <form method="post"
+                  action="{{ url_for('admin.excluir_professor', professor_id=professor.id) }}"
+                  onsubmit="return confirm('Excluir este professor?');">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
         </tr>
       {% else %}
-        <tr><td colspan="4">Nenhum professor cadastrado ainda.</td></tr>
+        <tr><td colspan="5">Nenhum professor cadastrado ainda.</td></tr>
       {% endfor %}
     </tbody>
 </table>
