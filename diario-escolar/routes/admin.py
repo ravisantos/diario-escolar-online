@@ -12,7 +12,7 @@ from models.matricula import Matricula
 
 from routes.decorators import login_obrigatorio
 
-from services.usuarios import criar_professor, criar_aluno, editar_usuario
+from services.usuarios import criar_professor, criar_aluno, atualizar_usuario, atualizar_aluno
 from services.matricula import matricular
 
 admin_bp = Blueprint('admin', __name__)
@@ -172,7 +172,7 @@ def professores():
 def editar_professor(professor_id):
     professor = db.get_or_404(Professor, professor_id)
     try:
-        editar_usuario(
+        atualizar_usuario(
             professor.usuario,
             request.form.get('nome', ''),
             request.form.get('email', ''),
@@ -329,7 +329,47 @@ def alunos():
             flash('Aluno cadastrado.', 'sucesso')
             return redirect(url_for('admin.alunos'))
 
-    lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
-    return render_template('admin/alunos.html', alunos=lista)
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Aluno, editar_id)
 
+    lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
+    return render_template('admin/alunos.html', alunos=lista, editando=editando)
+
+@admin_bp.route('/alunos/<int:aluno_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_aluno(aluno_id):
+    aluno = db.get_or_404(Aluno, aluno_id)
+    try:
+        editar_aluno(
+            aluno,
+            request.form.get('nome', ''),
+            request.form.get('email', ''),
+            request.form.get('senha', ''),
+            request.form.get('ra', ''),
+            request.form.get('data_nascimento', ''),
+        )
+    except ValueError as erro:
+        db.session.rollback()
+        flash(str(erro), 'erro')
+        return redirect(url_for('admin.alunos', editar=aluno.id))
+
+    flash('Aluno atualizado.', 'sucesso')
+    return redirect(url_for('admin.alunos'))
+
+
+@admin_bp.route('/alunos/<int:aluno_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_aluno(aluno_id):
+    aluno = db.get_or_404(Aluno, aluno_id)
+
+    if aluno.matriculas:
+        flash('Não dá para excluir: o aluno está matriculado em uma turma. Remova a matrícula antes.', 'erro')
+    else:
+        db.session.delete(aluno)
+        db.session.delete(aluno.usuario)
+        db.session.commit()
+        flash('Aluno excluído.', 'sucesso')
+    return redirect(url_for('admin.alunos'))
 

@@ -5,23 +5,35 @@
 {% block conteudo_admin %}
   <h1>Alunos</h1>
 
-  <form method="post">
-    <label for="nome">Nome completo:</label>
-    <input type="text" id="nome" name="nome" required>
+  <form method="post"
+        action="{{ url_for('admin.editar_aluno', aluno_id=editando.id) if editando else url_for('admin.alunos') }}">
+    <h2>{{ 'Editar aluno' if editando else 'Novo aluno' }}</h2>
 
-    <label for="ra">Nº Matrícula:</label>
-    <input type="text" id="ra" name="ra" required>
+    <label for="nome">Nome completo:</label>
+    <input type="text" id="nome" name="nome" required
+           value="{{ editando.usuario.nome if editando else '' }}">
+
+    <label for="ra">RA (número de registro):</label>
+    <input type="text" id="ra" name="ra" required
+           value="{{ editando.ra if editando else '' }}">
 
     <label for="data_nascimento">Data de nascimento (opcional):</label>
-    <input type="date" id="data_nascimento" name="data_nascimento">
+    <input type="date" id="data_nascimento" name="data_nascimento"
+           value="{{ editando.data_nascimento.isoformat() if editando and editando.data_nascimento else '' }}">
 
     <label for="email">E-mail (será o login):</label>
-    <input type="email" id="email" name="email" required>
+    <input type="email" id="email" name="email" required
+           value="{{ editando.usuario.email if editando else '' }}">
 
-    <label for="senha">Senha provisória (mínimo 6 caracteres):</label>
-    <input type="text" id="senha" name="senha" minlength="6" required>
+    <label for="senha">
+      {{ 'Nova senha (deixe em branco para manter a atual)' if editando else 'Senha provisória (mínimo 6 caracteres)' }}:
+    </label>
+    <input type="text" id="senha" name="senha" minlength="6" {{ '' if editando else 'required' }}>
 
-    <button type="submit">Cadastrar aluno</button>
+    <button type="submit">{{ 'Salvar alterações' if editando else 'Cadastrar aluno' }}</button>
+    {% if editando %}
+      <a href="{{ url_for('admin.alunos') }}">Cancelar</a>
+    {% endif %}
   </form>
 
   <table>
@@ -29,11 +41,12 @@
       <tr>
         <th>#</th>
         <th>Nome</th>
-        <th>Nº matrícula</th>
+        <th>RA</th>
         <th>E-mail</th>
         <th>Nascimento</th>
         <th>Idade</th>
         <th>Turma</th>
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -43,26 +56,21 @@
           <td>{{ aluno.usuario.nome }}</td>
           <td>{{ aluno.ra }}</td>
           <td>{{ aluno.usuario.email }}</td>
+          <td> {{ aluno.usuario.nascimento }} </td>
+          <td> {{ aluno.usuario.idade }} </td>
+          <td> {{ aluno.usuario.turma }} </td>
+
           <td>
-            {% if aluno.data_nascimento %}
-              {{ aluno.data_nascimento.strftime('%d/%m/%Y') }}
-            {% else %}
-              —
-            {% endif %}
-          </td>
-          <td>
-            {% if aluno.idade is not none %}{{ aluno.idade }} anos{% else %}—{% endif %}
-          </td>
-          <td>
-            {% for matricula in aluno.matriculas %}
-              {{ matricula.turma.nome }}{% if not loop.last %}, {% endif %}
-            {% else %}
-              —
-            {% endfor %}
+            <a href="{{ url_for('admin.alunos', editar=aluno.id) }}">Editar</a>
+            <form method="post"
+                  action="{{ url_for('admin.excluir_aluno', aluno_id=aluno.id) }}"
+                  onsubmit="return confirm('Excluir este aluno?');">
+              <button type="submit">Excluir</button>
+            </form>
           </td>
         </tr>
       {% else %}
-        <tr><td colspan="6">Nenhum aluno cadastrado ainda.</td></tr>
+        <tr><td colspan="8">Nenhum aluno cadastrado ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>
