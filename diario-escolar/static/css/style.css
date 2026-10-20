@@ -31,3 +31,148 @@ body {
     color: #14532d;
 }
 
+:root {
+    :root {
+    --cor-principal: #1f4e79;
+    --cor-principal-clara: #dbe8f5;
+    --cor-destaque: #e8a317;
+    --cor-perigo: #b42318;
+    --cor-borda: #c9ced6;
+}
+}
+
+body {
+    background: #f6f7f9;
+    color: #222;
+    line-height: 1.4;
+}
+
+h1 {
+    color: var(--cor-principal);
+    margin-top: 0;
+}
+
+/* formulários */
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+form input,
+form select {
+    padding: 6px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    margin-top: 12px;
+    padding: 7px 14px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--cor-principal);
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* tabelas */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    background: #fff;
+}
+
+th,
+td {
+    border: 1px solid var(--cor-borda);
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background: var(--cor-fundo-cabecalho);
+}
+
+td form {
+    display: inline;
+}
+
+td button {
+    margin-top: 0;
+    padding: 3px 8px;
+    font-size: 0.9rem;
+}
+
+body {
+    background: #eef3f8;
+}
+
+/* barra com o nome do usuário */
+#barra-usuario {
+    background: var(--cor-principal);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+#barra-usuario a {
+    color: #fff;
+}
+
+/* títulos */
+h1 {
+    border-bottom: 3px solid var(--cor-destaque);
+    padding-bottom: 6px;
+}
+
+h2 {
+    color: var(--cor-principal);
+}
+
+/* formulário em "cartão" simples */
+form {
+    background: #fff;
+    border: 1px solid var(--cor-borda);
+    border-left: 4px solid var(--cor-principal);
+    border-radius: 4px;
+    padding: 12px 16px;
+}
+
+/* tabela: cabeçalho colorido e linhas alternadas */
+th {
+    background: var(--cor-principal);
+    color: #fff;
+}
+
+tbody tr:nth-child(even) {
+    background: #f3f7fb;
+}
+
+tbody tr:hover {
+    background: var(--cor-principal-clara);
+}
+
+/* links de ação */
+td a {
+    color: var(--cor-principal);
+    font-weight: bold;
+}
+
+/* botão excluir (dentro da tabela) em vermelho */
+td form {
+    background: none;
+    border: 0;
+    padding: 0;
+}
+
+td form button {
+    background: var(--cor-perigo);
+}

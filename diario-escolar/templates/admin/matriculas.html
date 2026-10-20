@@ -6,7 +6,7 @@
   <h1>Matrículas em turmas</h1>
 
 {% if faltando %}
-  <p class="erro">Antes de matricular, cadastre: {{ faltando|join(', ') }}.</p>
+<p class="mensagem erro">Antes de matricular, cadastre: {{ faltando|join(', ') }}.</p>
 {% else %}
   <form method="post">
     <label>Aluno
