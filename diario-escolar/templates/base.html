@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="br">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,21 +8,25 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% block css %}{% endblock %}
 </head>
+
 <body>
 
-    {% if session.get('usuario_id') %}
-    <nav id="barra-usuario">
-      <span>{{ session['nome'] }} ({{ session['perfil'] }})</span>
-      <form method="post" action="{{ url_for('auth.logout') }}">
-        <button type="submit">Sair</button>
-      </form>
-    </nav>
+
+  {% if session.get('usuario_id') %}
+  <nav id="barra-usuario">
+    <span class="nome-usuario">{{ session['nome'] }}</span>
+    <span class="perfil-usuario">{{ session['perfil'] }}</span>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <button type="submit">Sair</button>
+    </form>
+  </nav>
+
   {% endif %}
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
-    {% for categoria, texto in mensagens %}
-      <p class="mensagem {{ categoria }}">{{ texto }}</p>
-    {% endfor %}
+  {% for categoria, texto in mensagens %}
+  <p class="mensagem {{ categoria }}">{{ texto }}</p>
+  {% endfor %}
   {% endwith %}
 
   {% block conteudo %}{% endblock %}
@@ -31,4 +36,5 @@
   </footer>
 
 </body>
+
 </html>
