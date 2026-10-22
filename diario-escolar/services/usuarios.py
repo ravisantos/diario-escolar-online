@@ -1,13 +1,10 @@
 from datetime import date
 
 from extensions import db
-
-from models.usuario import Usuario, PERFIS
-from models.professor import Professor
 from models.aluno import Aluno
+from models.professor import Professor
+from models.usuario import Usuario, PERFIS
 
-
-# Função pra autenticar o login
 
 def autenticar(email, senha):
     """Devolve o usuário se e-mail e senha estiverem certos; senão, None."""
@@ -16,7 +13,6 @@ def autenticar(email, senha):
         return usuario
     return None
 
-# Função para criar usuário
 
 def criar_usuario(nome, email, senha, perfil, salvar=True):
     nome = nome.strip()
@@ -40,7 +36,6 @@ def criar_usuario(nome, email, senha, perfil, salvar=True):
         db.session.commit()
     return usuario
 
-# Função para editar usuarios gerais
 
 def atualizar_usuario(usuario, nome, email, senha='', salvar=True):
     """Atualiza nome, e-mail e (opcionalmente) a senha. Senha vazia = mantém a atual."""
@@ -67,7 +62,6 @@ def atualizar_usuario(usuario, nome, email, senha='', salvar=True):
         db.session.commit()
     return usuario
 
-# Função para cadastrar professor 
 
 def criar_professor(nome, email, senha):
     """Cria o login e o cadastro do professor num único commit."""
@@ -77,10 +71,9 @@ def criar_professor(nome, email, senha):
     db.session.commit()
     return professor
 
-# FUnção que calcula a idade com base na data de nasc
 
 def _ler_nascimento(texto):
-
+    """Converte 'AAAA-MM-DD' em date. Texto vazio = None (opcional)."""
     texto = texto.strip()
     if not texto:
         return None
@@ -92,15 +85,14 @@ def _ler_nascimento(texto):
         raise ValueError('A data de nascimento não pode ser no futuro.')
     return nascimento
 
-# Função para cadastrar aluno
 
 def criar_aluno(nome, email, senha, ra, data_nascimento=''):
     """Cria o login e o cadastro do aluno num único commit."""
     ra = ra.strip()
     if not ra:
-        raise ValueError('Informe o RA do aluno.')
+        raise ValueError('Informe o número de matrícula do aluno.')
     if Aluno.query.filter_by(ra=ra).first():
-        raise ValueError('Já existe um aluno com esse RA.')
+        raise ValueError('Já existe um aluno com esse número de matrícula.')
 
     nascimento = _ler_nascimento(data_nascimento)
 
@@ -110,20 +102,19 @@ def criar_aluno(nome, email, senha, ra, data_nascimento=''):
     db.session.commit()
     return aluno
 
-# Função para editar aluno
 
 def atualizar_aluno(aluno, nome, email, senha, ra, data_nascimento=''):
-
+    """Atualiza o login e os dados do aluno num único commit."""
     ra = ra.strip()
     if not ra:
-        raise ValueError('Informe o RA do aluno.')
+        raise ValueError('Informe o número de matrícula do aluno.')
     outro = Aluno.query.filter_by(ra=ra).first()
     if outro and outro.id != aluno.id:
-        raise ValueError('Já existe um aluno com esse RA.')
+        raise ValueError('Já existe um aluno com esse número de matrícula.')
 
     nascimento = _ler_nascimento(data_nascimento)
 
-    # valida e-mail/nome/senha antes de mexer nos campos do aluno
+    # valida nome/e-mail/senha antes de mexer nos campos do aluno
     atualizar_usuario(aluno.usuario, nome, email, senha, salvar=False)
 
     aluno.ra = ra

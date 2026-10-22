@@ -9,38 +9,54 @@
   {% if faltando %}
     <p class="mensagem erro">Antes de criar uma alocação, cadastre: {{ faltando|join(', ') }}.</p>
   {% else %}
-    <form method="post">
-      <label for="turma_id">Turma:</label>
-      <select id="turma_id" name="turma_id" required>
-        <option value="">Escolha...</option>
-        {% for turma in turmas %}
-          <option value="{{ turma.id }}">{{ turma.nome }} / {{ turma.ano_letivo }}</option>
-        {% endfor %}
-      </select>
+    <form method="post"
+          action="{{ url_for('admin.editar_alocacao', alocacao_id=editando.id) if editando else url_for('admin.alocacoes') }}">
+      <h2>{{ 'Trocar professor da alocação' if editando else 'Nova alocação' }}</h2>
 
-      <label for="disciplina_id">Disciplina:</label>
-      <select id="disciplina_id" name="disciplina_id" required>
-        <option value="">Escolha...</option>
-        {% for disciplina in disciplinas %}
-          <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
-        {% endfor %}
-      </select>
+      {% if editando %}
+        <p>
+          <strong>Turma:</strong> {{ editando.turma.nome }} / {{ editando.turma.ano_letivo }}<br>
+          <strong>Disciplina:</strong> {{ editando.disciplina.nome }}
+        </p>
+      {% else %}
+        <label for="turma_id">Turma:</label>
+        <select id="turma_id" name="turma_id" required>
+          <option value="">Escolha...</option>
+          {% for turma in turmas %}
+            <option value="{{ turma.id }}">{{ turma.nome }} / {{ turma.ano_letivo }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="disciplina_id">Disciplina:</label>
+        <select id="disciplina_id" name="disciplina_id" required>
+          <option value="">Escolha...</option>
+          {% for disciplina in disciplinas %}
+            <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+          {% endfor %}
+        </select>
+      {% endif %}
 
       <label for="professor_id">Professor:</label>
       <select id="professor_id" name="professor_id" required>
         <option value="">Escolha...</option>
         {% for professor in professores %}
-          <option value="{{ professor.id }}">{{ professor.usuario.nome }}</option>
+          <option value="{{ professor.id }}"
+                  {{ 'selected' if editando and editando.professor_id == professor.id }}>
+            {{ professor.usuario.nome }}
+          </option>
         {% endfor %}
       </select>
 
-      <button type="submit">Criar alocação</button>
+      <button type="submit">{{ 'Salvar alterações' if editando else 'Criar alocação' }}</button>
+      {% if editando %}
+        <a href="{{ url_for('admin.alocacoes') }}">Cancelar</a>
+      {% endif %}
     </form>
   {% endif %}
 
   <table>
     <thead>
-      <tr><th>#</th><th>Turma</th><th>Disciplina</th><th>Professor</th></tr>
+      <tr><th>#</th><th>Turma</th><th>Disciplina</th><th>Professor</th><th>Ações</th></tr>
     </thead>
     <tbody>
       {% for alocacao in alocacoes %}
@@ -49,9 +65,17 @@
           <td>{{ alocacao.turma.nome }} / {{ alocacao.turma.ano_letivo }}</td>
           <td>{{ alocacao.disciplina.nome }}</td>
           <td>{{ alocacao.professor.usuario.nome }}</td>
+          <td>
+            <a href="{{ url_for('admin.alocacoes', editar=alocacao.id) }}">Trocar professor</a>
+            <form method="post"
+                  action="{{ url_for('admin.excluir_alocacao', alocacao_id=alocacao.id) }}"
+                  onsubmit="return confirm('Excluir esta alocação?');">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
         </tr>
       {% else %}
-        <tr><td colspan="4">Nenhuma alocação cadastrada ainda.</td></tr>
+        <tr><td colspan="5">Nenhuma alocação cadastrada ainda.</td></tr>
       {% endfor %}
     </tbody>
   </table>

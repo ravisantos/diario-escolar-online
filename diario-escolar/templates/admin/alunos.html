@@ -13,7 +13,7 @@
     <input type="text" id="nome" name="nome" required
            value="{{ editando.usuario.nome if editando else '' }}">
 
-    <label for="ra">RA (número de registro):</label>
+    <label for="ra">Número de matrícula:</label>
     <input type="text" id="ra" name="ra" required
            value="{{ editando.ra if editando else '' }}">
 
@@ -41,7 +41,7 @@
       <tr>
         <th>#</th>
         <th>Nome</th>
-        <th>RA</th>
+        <th>Matrícula</th>
         <th>E-mail</th>
         <th>Nascimento</th>
         <th>Idade</th>
@@ -56,10 +56,23 @@
           <td>{{ aluno.usuario.nome }}</td>
           <td>{{ aluno.ra }}</td>
           <td>{{ aluno.usuario.email }}</td>
-          <td> {{ aluno.usuario.nascimento }} </td>
-          <td> {{ aluno.usuario.idade }} </td>
-          <td> {{ aluno.usuario.turma }} </td>
-
+          <td>
+            {% if aluno.data_nascimento %}
+              {{ aluno.data_nascimento.strftime('%d/%m/%Y') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if aluno.idade is not none %}{{ aluno.idade }} anos{% else %}—{% endif %}
+          </td>
+          <td>
+            {% for matricula in aluno.matriculas if matricula.status == 'ativa' %}
+              {{ matricula.turma.nome }}{% if not loop.last %}, {% endif %}
+            {% else %}
+              —
+            {% endfor %}
+          </td>
           <td>
             <a href="{{ url_for('admin.alunos', editar=aluno.id) }}">Editar</a>
             <form method="post"

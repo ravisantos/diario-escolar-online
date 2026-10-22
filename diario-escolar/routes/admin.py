@@ -1,34 +1,29 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from extensions import db
-
 from models.alocacao import Alocacao
-from models.usuario import Usuario
-from models.disciplina import Disciplina
-from models.turma import Turma
-from models.professor import Professor
 from models.aluno import Aluno
+from models.disciplina import Disciplina
 from models.matricula import Matricula
-
+from models.professor import Professor
+from models.turma import Turma
+from models.usuario import Usuario
 from routes.decorators import login_obrigatorio
-
-from services.usuarios import criar_professor, criar_aluno, atualizar_usuario, atualizar_aluno
-from services.matricula import matricular
+from services.matriculas import (cancelar_matricula, excluir_matricula,
+                                 matricular, reativar_matricula)
+from services.usuarios import (atualizar_aluno, atualizar_usuario,
+                               criar_aluno, criar_professor)
 
 admin_bp = Blueprint('admin', __name__)
 
-TURNOS = ('Manhã', 'Tarde', 'Noite', 'Integral')  # Lista de turnos
+TURNOS = ('Manhã', 'Tarde', 'Noite', 'Integral')
 
-# Rotas para os templates do painel admin:
-
-# Dashboard admin (inicio)
 
 @admin_bp.route('/')
 @login_obrigatorio('admin')
 def dashboard():
     return render_template('admin/dashboard.html')
 
-#Disciplinas
 
 @admin_bp.route('/disciplinas', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
@@ -43,9 +38,9 @@ def disciplinas():
         else:
             db.session.add(Disciplina(nome=nome))
             db.session.commit()
-            flash(f'Disciplina {nome} criada.', 'sucesso')
+            flash('Disciplina criada.', 'sucesso')
             return redirect(url_for('admin.disciplinas'))
-        
+
     editando = None
     editar_id = request.args.get('editar', type=int)
     if editar_id:
@@ -53,6 +48,7 @@ def disciplinas():
 
     lista = Disciplina.query.order_by(Disciplina.nome).all()
     return render_template('admin/disciplinas.html', disciplinas=lista, editando=editando)
+
 
 @admin_bp.route('/disciplinas/<int:disciplina_id>/editar', methods=['POST'])
 @login_obrigatorio('admin')
@@ -73,6 +69,7 @@ def editar_disciplina(disciplina_id):
     flash('Disciplina atualizada.', 'sucesso')
     return redirect(url_for('admin.disciplinas'))
 
+
 @admin_bp.route('/disciplinas/<int:disciplina_id>/excluir', methods=['POST'])
 @login_obrigatorio('admin')
 def excluir_disciplina(disciplina_id):
@@ -86,7 +83,6 @@ def excluir_disciplina(disciplina_id):
         flash('Disciplina excluída.', 'sucesso')
     return redirect(url_for('admin.disciplinas'))
 
-# Alocações
 
 @admin_bp.route('/alocacoes', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
@@ -129,79 +125,51 @@ def alocacoes():
              .order_by(Turma.ano_letivo.desc(), Turma.nome, Disciplina.nome)
              .all())
 
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Alocacao, editar_id)
+
     return render_template('admin/alocacoes.html',
                            alocacoes=lista,
                            turmas=lista_turmas,
                            disciplinas=lista_disciplinas,
                            professores=lista_professores,
-                           faltando=faltando)
+                           faltando=faltando,
+                           editando=editando)
 
-# Professores
 
-@admin_bp.route('/professores', methods=['GET', 'POST'])
+@admin_bp.route('/alocacoes/<int:alocacao_id>/editar', methods=['POST'])
 @login_obrigatorio('admin')
-def professores():
-    if request.method == 'POST':
-        nome = request.form.get('nome', '')
-        email = request.form.get('email', '')
-        senha = request.form.get('senha', '')
+def editar_alocacao(alocacao_id):
+    """Só o professor pode ser trocado; turma e disciplina identificam a alocação."""
+    alocacao = db.get_or_404(Alocacao, alocacao_id)
+    professor_id = request.form.get('professor_id', type=int)
+    professor = db.session.get(Professor, professor_id) if professor_id else None
 
-        try:
-            criar_professor(
-                request.form.get('nome', ''),
-                request.form.get('email', ''),
-                request.form.get('senha', '')
-            )
-        except ValueError as erro:
-            flash(str(erro), 'erro')
+    if professor is None:
+        flash('Escolha um professor válido.', 'erro')
+        return redirect(url_for('admin.alocacoes', editar=alocacao.id))
 
-        else:
-            flash('Professor cadastrado', 'sucesso')
-            return redirect(url_for('admin.professores'))
+    alocacao.professor_id = professor.id
+    db.session.commit()
+    flash('Professor da alocação atualizado.', 'sucesso')
+    return redirect(url_for('admin.alocacoes'))
 
-    editando = None
-    editar_id = request.args.get('editar', type=int)
-    if editar_id:
-        editando = db.session.get(Professor, editar_id)
 
-    lista = Professor.query.join(Usuario).order_by(Usuario.nome).all()
-    return render_template('admin/professores.html', professores=lista, editando=editando)
-
-@admin_bp.route('/professores/<int:professor_id>/editar', methods=['POST'])
+@admin_bp.route('/alocacoes/<int:alocacao_id>/excluir', methods=['POST'])
 @login_obrigatorio('admin')
-def editar_professor(professor_id):
-    professor = db.get_or_404(Professor, professor_id)
-    try:
-        atualizar_usuario(
-            professor.usuario,
-            request.form.get('nome', ''),
-            request.form.get('email', ''),
-            request.form.get('senha', ''),
-        )
-    except ValueError as erro:
-        db.session.rollback()
-        flash(str(erro), 'erro')
-        return redirect(url_for('admin.professores', editar=professor.id))
+def excluir_alocacao(alocacao_id):
+    alocacao = db.get_or_404(Alocacao, alocacao_id)
 
-    flash(f'Professor {professor.usuario.nome} atualizado.', 'sucesso')
-    return redirect(url_for('admin.professores'))
-
-
-@admin_bp.route('/professores/<int:professor_id>/excluir', methods=['POST'])
-@login_obrigatorio('admin')
-def excluir_professor(professor_id):
-    professor = db.get_or_404(Professor, professor_id)
-
-    if professor.alocacoes:
-        flash('Não é possível excluir: o professor tem disciplinas alocadas. Remova as alocações antes.', 'erro')
+    if alocacao.avaliacoes or alocacao.aulas:
+        flash('Não dá para excluir: já existem avaliações ou aulas lançadas nessa alocação.', 'erro')
     else:
-        db.session.delete(professor)
-        db.session.delete(professor.usuario)
+        db.session.delete(alocacao)
         db.session.commit()
-        flash(f'Professor {professor.usuario.nome} excluído.', 'sucesso')
-    return redirect(url_for('admin.professores'))
+        flash('Alocação excluída.', 'sucesso')
+    return redirect(url_for('admin.alocacoes'))
 
-# Turmas
 
 @admin_bp.route('/turmas', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
@@ -224,7 +192,7 @@ def turmas():
             db.session.commit()
             flash('Turma criada.', 'sucesso')
             return redirect(url_for('admin.turmas'))
-        
+
     editando = None
     editar_id = request.args.get('editar', type=int)
     if editar_id:
@@ -232,6 +200,7 @@ def turmas():
 
     lista = Turma.query.order_by(Turma.ano_letivo.desc(), Turma.nome).all()
     return render_template('admin/turmas.html', turmas=lista, turnos=TURNOS, editando=editando)
+
 
 @admin_bp.route('/turmas/<int:turma_id>/editar', methods=['POST'])
 @login_obrigatorio('admin')
@@ -255,7 +224,7 @@ def editar_turma(turma_id):
         turma.ano_letivo = ano
         turma.turno = turno
         db.session.commit()
-        flash(f'Turma {turma.nome} atualizada.', 'sucesso')
+        flash('Turma atualizada.', 'sucesso')
         return redirect(url_for('admin.turmas'))
 
     return redirect(url_for('admin.turmas', editar=turma.id))
@@ -267,14 +236,137 @@ def excluir_turma(turma_id):
     turma = db.get_or_404(Turma, turma_id)
 
     if turma.alocacoes or turma.matriculas:
-        flash('Não é possível excluir: a turma tem disciplinas alocadas ou alunos matriculados.', 'erro')
+        flash('Não dá para excluir: a turma tem disciplinas alocadas ou alunos matriculados.', 'erro')
     else:
         db.session.delete(turma)
         db.session.commit()
         flash('Turma excluída.', 'sucesso')
     return redirect(url_for('admin.turmas'))
 
-# Matrículas
+
+@admin_bp.route('/professores', methods=['GET', 'POST'])
+@login_obrigatorio('admin')
+def professores():
+    if request.method == 'POST':
+        try:
+            criar_professor(
+                request.form.get('nome', ''),
+                request.form.get('email', ''),
+                request.form.get('senha', ''),
+            )
+        except ValueError as erro:
+            flash(str(erro), 'erro')
+        else:
+            flash('Professor cadastrado.', 'sucesso')
+            return redirect(url_for('admin.professores'))
+
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Professor, editar_id)
+
+    lista = Professor.query.join(Usuario).order_by(Usuario.nome).all()
+    return render_template('admin/professores.html', professores=lista, editando=editando)
+
+
+@admin_bp.route('/professores/<int:professor_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_professor(professor_id):
+    professor = db.get_or_404(Professor, professor_id)
+    try:
+        atualizar_usuario(
+            professor.usuario,
+            request.form.get('nome', ''),
+            request.form.get('email', ''),
+            request.form.get('senha', ''),
+        )
+    except ValueError as erro:
+        db.session.rollback()
+        flash(str(erro), 'erro')
+        return redirect(url_for('admin.professores', editar=professor.id))
+
+    flash('Professor atualizado.', 'sucesso')
+    return redirect(url_for('admin.professores'))
+
+
+@admin_bp.route('/professores/<int:professor_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_professor(professor_id):
+    professor = db.get_or_404(Professor, professor_id)
+
+    if professor.alocacoes:
+        flash('Não dá para excluir: o professor tem disciplinas alocadas. Remova as alocações antes.', 'erro')
+    else:
+        db.session.delete(professor)
+        db.session.delete(professor.usuario)
+        db.session.commit()
+        flash('Professor excluído.', 'sucesso')
+    return redirect(url_for('admin.professores'))
+
+
+@admin_bp.route('/alunos', methods=['GET', 'POST'])
+@login_obrigatorio('admin')
+def alunos():
+    if request.method == 'POST':
+        try:
+            criar_aluno(
+                request.form.get('nome', ''),
+                request.form.get('email', ''),
+                request.form.get('senha', ''),
+                request.form.get('ra', ''),
+                request.form.get('data_nascimento', ''),
+            )
+        except ValueError as erro:
+            flash(str(erro), 'erro')
+        else:
+            flash('Aluno cadastrado.', 'sucesso')
+            return redirect(url_for('admin.alunos'))
+
+    editando = None
+    editar_id = request.args.get('editar', type=int)
+    if editar_id:
+        editando = db.session.get(Aluno, editar_id)
+
+    lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
+    return render_template('admin/alunos.html', alunos=lista, editando=editando)
+
+
+@admin_bp.route('/alunos/<int:aluno_id>/editar', methods=['POST'])
+@login_obrigatorio('admin')
+def editar_aluno(aluno_id):
+    aluno = db.get_or_404(Aluno, aluno_id)
+    try:
+        atualizar_aluno(
+            aluno,
+            request.form.get('nome', ''),
+            request.form.get('email', ''),
+            request.form.get('senha', ''),
+            request.form.get('ra', ''),
+            request.form.get('data_nascimento', ''),
+        )
+    except ValueError as erro:
+        db.session.rollback()
+        flash(str(erro), 'erro')
+        return redirect(url_for('admin.alunos', editar=aluno.id))
+
+    flash('Aluno atualizado.', 'sucesso')
+    return redirect(url_for('admin.alunos'))
+
+
+@admin_bp.route('/alunos/<int:aluno_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_aluno(aluno_id):
+    aluno = db.get_or_404(Aluno, aluno_id)
+
+    if aluno.matriculas:
+        flash('Não dá para excluir: o aluno tem matrícula em turma. Exclua a matrícula antes.', 'erro')
+    else:
+        db.session.delete(aluno)
+        db.session.delete(aluno.usuario)
+        db.session.commit()
+        flash('Aluno excluído.', 'sucesso')
+    return redirect(url_for('admin.alunos'))
+
 
 @admin_bp.route('/matriculas', methods=['GET', 'POST'])
 @login_obrigatorio('admin')
@@ -306,70 +398,37 @@ def matriculas():
              .all())
 
     return render_template('admin/matriculas.html',
-                           matriculas=lista, alunos=lista_alunos,
-                           turmas=lista_turmas, faltando=faltando)
+                           matriculas=lista,
+                           alunos=lista_alunos,
+                           turmas=lista_turmas,
+                           faltando=faltando)
 
-# Alunos
 
-@admin_bp.route('/alunos', methods=['GET', 'POST'])
-@login_obrigatorio('admin')
-def alunos():
-    if request.method == 'POST':
-        try:
-            criar_aluno(
-                request.form.get('nome', ''),
-                request.form.get('email', ''),
-                request.form.get('senha', ''),
-                request.form.get('ra', ''),
-                request.form.get('data_nascimento', ''),
-            )
-        except ValueError as erro:
-            flash(str(erro), 'erro')
-        else:
-            flash('Aluno cadastrado.', 'sucesso')
-            return redirect(url_for('admin.alunos'))
-
-    editando = None
-    editar_id = request.args.get('editar', type=int)
-    if editar_id:
-        editando = db.session.get(Aluno, editar_id)
-
-    lista = Aluno.query.join(Usuario).order_by(Usuario.nome).all()
-    return render_template('admin/alunos.html', alunos=lista, editando=editando)
-
-@admin_bp.route('/alunos/<int:aluno_id>/editar', methods=['POST'])
-@login_obrigatorio('admin')
-def editar_aluno(aluno_id):
-    aluno = db.get_or_404(Aluno, aluno_id)
+def _acao_matricula(matricula_id, funcao, mensagem):
+    matricula = db.get_or_404(Matricula, matricula_id)
     try:
-        editar_aluno(
-            aluno,
-            request.form.get('nome', ''),
-            request.form.get('email', ''),
-            request.form.get('senha', ''),
-            request.form.get('ra', ''),
-            request.form.get('data_nascimento', ''),
-        )
+        funcao(matricula)
     except ValueError as erro:
         db.session.rollback()
         flash(str(erro), 'erro')
-        return redirect(url_for('admin.alunos', editar=aluno.id))
-
-    flash('Aluno atualizado.', 'sucesso')
-    return redirect(url_for('admin.alunos'))
-
-
-@admin_bp.route('/alunos/<int:aluno_id>/excluir', methods=['POST'])
-@login_obrigatorio('admin')
-def excluir_aluno(aluno_id):
-    aluno = db.get_or_404(Aluno, aluno_id)
-
-    if aluno.matriculas:
-        flash('Não dá para excluir: o aluno está matriculado em uma turma. Remova a matrícula antes.', 'erro')
     else:
-        db.session.delete(aluno)
-        db.session.delete(aluno.usuario)
-        db.session.commit()
-        flash('Aluno excluído.', 'sucesso')
-    return redirect(url_for('admin.alunos'))
+        flash(mensagem, 'sucesso')
+    return redirect(url_for('admin.matriculas'))
 
+
+@admin_bp.route('/matriculas/<int:matricula_id>/cancelar', methods=['POST'])
+@login_obrigatorio('admin')
+def cancelar_matricula_rota(matricula_id):
+    return _acao_matricula(matricula_id, cancelar_matricula, 'Matrícula cancelada.')
+
+
+@admin_bp.route('/matriculas/<int:matricula_id>/reativar', methods=['POST'])
+@login_obrigatorio('admin')
+def reativar_matricula_rota(matricula_id):
+    return _acao_matricula(matricula_id, reativar_matricula, 'Matrícula reativada.')
+
+
+@admin_bp.route('/matriculas/<int:matricula_id>/excluir', methods=['POST'])
+@login_obrigatorio('admin')
+def excluir_matricula_rota(matricula_id):
+    return _acao_matricula(matricula_id, excluir_matricula, 'Matrícula excluída.')
