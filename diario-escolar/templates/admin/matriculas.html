@@ -47,7 +47,7 @@
           <td>{{ m.turma.nome }}</td>
           <td>{{ m.turma.ano_letivo }}</td>
           <td>{{ m.turma.turno }}</td>
-          <td>{{ m.status }}</td>
+          <td><span class="selo selo-{{ m.status }}">{{ m.status }}</span></td>
           <td>
             {% if m.status == 'ativa' %}
               <form method="post"

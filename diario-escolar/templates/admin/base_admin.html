@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
-
 {% block css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
 
 {% block conteudo %}
 
+{% set rota = request.endpoint %}
 <aside>
   <nav id="menu-admin">
-    <a href="{{ url_for('admin.alocacoes') }}" target="_self">Alocações</a>
-    <a href="{{ url_for('admin.alunos') }}" target="_self">Alunos</a>
-    <a href="{{ url_for('admin.dashboard') }}" target="_self">Início</a>
-    <a href="{{ url_for('admin.disciplinas') }}" target="_self">Disciplinas</a>
-    <a href="{{ url_for('admin.matriculas') }}">Matrículas</a>
-    <a href="{{ url_for('admin.professores') }}" target="_self">Professores</a>
-    <a href="{{ url_for('admin.turmas') }}" target="_self">Turmas</a>    
+    <a href="{{ url_for('admin.dashboard') }}"   class="{{ 'ativo' if rota == 'admin.dashboard' }}">Início</a>
+    <a href="{{ url_for('admin.alunos') }}"      class="{{ 'ativo' if rota == 'admin.alunos' }}">Alunos</a>
+    <a href="{{ url_for('admin.professores') }}" class="{{ 'ativo' if rota == 'admin.professores' }}">Professores</a>
+    <a href="{{ url_for('admin.turmas') }}"      class="{{ 'ativo' if rota == 'admin.turmas' }}">Turmas</a>
+    <a href="{{ url_for('admin.disciplinas') }}" class="{{ 'ativo' if rota == 'admin.disciplinas' }}">Disciplinas</a>
+    <a href="{{ url_for('admin.alocacoes') }}"   class="{{ 'ativo' if rota == 'admin.alocacoes' }}">Alocações</a>
+    <a href="{{ url_for('admin.matriculas') }}"  class="{{ 'ativo' if rota == 'admin.matriculas' }}">Matrículas</a>
   </nav>
 </aside>
 

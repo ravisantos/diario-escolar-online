@@ -7,11 +7,12 @@
 
 {% block conteudo %}
 
+{% set rota = request.endpoint %}
 <aside>
   <nav id="menu-aluno">
-    <a href="{{ url_for('aluno.dashboard') }}">Início</a>
-    <a href="{{ url_for('aluno.boletim_rota') }}">Boletim</a>
-    <a href="{{ url_for('aluno.frequencia_rota') }}">Frequência</a>
+    <a href="{{ url_for('aluno.dashboard') }}"       class="{{ 'ativo' if rota == 'aluno.dashboard' }}">Início</a>
+    <a href="{{ url_for('aluno.boletim_rota') }}"    class="{{ 'ativo' if rota == 'aluno.boletim_rota' }}">Boletim</a>
+    <a href="{{ url_for('aluno.frequencia_rota') }}" class="{{ 'ativo' if rota == 'aluno.frequencia_rota' }}">Frequência</a>
   </nav>
 </aside>
 

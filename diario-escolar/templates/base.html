@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="br">
+<html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8">
@@ -11,25 +11,27 @@
 
 <body>
 
-
   {% if session.get('usuario_id') %}
   <nav id="barra-usuario">
-    <span class="nome-usuario">{{ session['nome'] }}</span>
-    <span class="perfil-usuario">{{ session['perfil'] }}</span>
-    <form method="post" action="{{ url_for('auth.logout') }}">
-      <button type="submit">Sair</button>
-    </form>
+    <div class="barra-conteudo">
+      <span class="nome-usuario">{{ session['nome'] }}</span>
+      <span class="perfil-usuario">{{ session['perfil'] }}</span>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <button type="submit">Sair</button>
+      </form>
+    </div>
   </nav>
-
   {% endif %}
 
-  {% with mensagens = get_flashed_messages(with_categories=true) %}
-  {% for categoria, texto in mensagens %}
-  <p class="mensagem {{ categoria }}">{{ texto }}</p>
-  {% endfor %}
-  {% endwith %}
+  <main class="container">
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% for categoria, texto in mensagens %}
+    <p class="mensagem {{ categoria }}">{{ texto }}</p>
+    {% endfor %}
+    {% endwith %}
 
-  {% block conteudo %}{% endblock %}
+    {% block conteudo %}{% endblock %}
+  </main>
 
   <footer id="rodape">
     <p><small>Diário Escolar © 2026<br>Desenvolvido por: 2º DS</small></p>

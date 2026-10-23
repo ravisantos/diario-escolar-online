@@ -265,3 +265,15 @@ td {
     color: var(--cor-principal);
     margin: 10px 0 20px;
 }
+
+.selo {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.selo-ativa        { background: #e3f6ea; color: #14532d; }
+.selo-cancelada    { background: #fde8e8; color: #9b1c1c; }
+.selo-transferida  { background: #fff3d6; color: #7a5200; }
