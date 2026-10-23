@@ -1,5 +1,29 @@
 {% extends 'base.html' %}
 
+{% block titulo %}Painel do professor{% endblock %}
+
 {% block conteudo %}
   <h1>Painel do professor</h1>
+  <p>Escolha uma turma/disciplina para lançar notas e fazer a chamada.</p>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Turma</th><th>Ano letivo</th><th>Turno</th><th>Disciplina</th><th>Alunos</th><th>Ações</th></tr>
+    </thead>
+    <tbody>
+      {% for alocacao in alocacoes %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ alocacao.turma.nome }}</td>
+          <td>{{ alocacao.turma.ano_letivo }}</td>
+          <td>{{ alocacao.turma.turno }}</td>
+          <td>{{ alocacao.disciplina.nome }}</td>
+          <td>{{ total_alunos[alocacao.id] }}</td>
+          <td><a href="{{ url_for('professor.turma', alocacao_id=alocacao.id) }}">Abrir</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7">Você ainda não tem disciplinas alocadas. Peça ao administrador.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

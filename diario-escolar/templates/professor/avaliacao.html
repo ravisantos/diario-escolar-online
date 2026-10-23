@@ -1,3 +1,32 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Nova avaliação{% endblock %}
+
 {% block conteudo %}
-  <h1>Painel do professor</h1>
+  <p><a href="{{ url_for('professor.turma', alocacao_id=alocacao.id) }}">&larr; Voltar</a></p>
+
+  <h1>Nova avaliação</h1>
+  <p>{{ alocacao.disciplina.nome }} - {{ alocacao.turma.nome }}</p>
+
+  <form method="post">
+    <label for="titulo">Título (ex.: Prova 1):</label>
+    <input type="text" id="titulo" name="titulo" required maxlength="120"
+           value="{{ request.form.get('titulo', '') }}">
+
+    <label for="bimestre">Bimestre:</label>
+    <select id="bimestre" name="bimestre" required>
+      {% for numero in (1, 2, 3, 4) %}
+        <option value="{{ numero }}" {{ 'selected' if request.form.get('bimestre') == numero|string }}>{{ numero }}º bimestre</option>
+      {% endfor %}
+    </select>
+
+    <label for="data">Data (opcional):</label>
+    <input type="date" id="data" name="data" value="{{ request.form.get('data', '') }}">
+
+    <label for="valor_maximo">Valor máximo da nota:</label>
+    <input type="text" id="valor_maximo" name="valor_maximo"
+           value="{{ request.form.get('valor_maximo', '10') }}" required>
+
+    <button type="submit">Criar avaliação</button>
+  </form>
 {% endblock %}

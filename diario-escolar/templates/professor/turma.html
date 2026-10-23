@@ -1,3 +1,99 @@
+{% extends 'base.html' %}
+
+{% block titulo %}{{ alocacao.disciplina.nome }} - {{ alocacao.turma.nome }}{% endblock %}
+
 {% block conteudo %}
-  <h1>Painel do professor</h1>
+  <p><a href="{{ url_for('professor.dashboard') }}">&larr; Voltar ao painel</a></p>
+
+  <h1>{{ alocacao.disciplina.nome }} - {{ alocacao.turma.nome }}</h1>
+  <p>{{ alocacao.turma.ano_letivo }} | {{ alocacao.turma.turno }} | {{ alunos|length }} aluno(s)</p>
+
+  <h2>Avaliações</h2>
+  <p><a href="{{ url_for('professor.nova_avaliacao', alocacao_id=alocacao.id) }}">+ Nova avaliação</a></p>
+  <table>
+    <thead>
+      <tr><th>Bimestre</th><th>Título</th><th>Data</th><th>Valor máx.</th><th>Notas lançadas</th><th>Ações</th></tr>
+    </thead>
+    <tbody>
+      {% for avaliacao in avaliacoes %}
+        <tr>
+          <td>{{ avaliacao.bimestre }}º</td>
+          <td>{{ avaliacao.titulo }}</td>
+          <td>{{ avaliacao.data.strftime('%d/%m/%Y') if avaliacao.data else '—' }}</td>
+          <td>{{ '%g'|format(avaliacao.valor_maximo) }}</td>
+          <td>{{ avaliacao.notas|length }} de {{ alunos|length }}</td>
+          <td>
+            <a href="{{ url_for('professor.notas', avaliacao_id=avaliacao.id) }}">Lançar notas</a>
+            <form method="post"
+                  action="{{ url_for('professor.excluir_avaliacao_rota', avaliacao_id=avaliacao.id) }}"
+                  onsubmit="return confirm('Excluir esta avaliação?');">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">Nenhuma avaliação criada ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Aulas e chamada</h2>
+  <form method="post" action="{{ url_for('professor.nova_aula', alocacao_id=alocacao.id) }}">
+    <label for="data">Data da aula:</label>
+    <input type="date" id="data" name="data" value="{{ hoje }}" required>
+
+    <label for="conteudo">Conteúdo da aula (opcional):</label>
+    <input type="text" id="conteudo" name="conteudo" maxlength="255">
+
+    <button type="submit">Registrar aula e fazer chamada</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Conteúdo</th><th>Presentes</th><th>Ações</th></tr>
+    </thead>
+    <tbody>
+      {% for aula in aulas %}
+        <tr>
+          <td>{{ aula.data.strftime('%d/%m/%Y') }}</td>
+          <td>{{ aula.conteudo or '—' }}</td>
+          <td>
+            {% if aula.frequencias %}
+              {{ aula.frequencias|selectattr('presente')|list|length }} de {{ aula.frequencias|length }}
+            {% else %}
+              chamada pendente
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('professor.chamada', aula_id=aula.id) }}">Chamada</a>
+            <form method="post"
+                  action="{{ url_for('professor.excluir_aula_rota', aula_id=aula.id) }}"
+                  onsubmit="return confirm('Excluir esta aula?');">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">Nenhuma aula registrada ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Alunos da turma</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Nome</th><th>Matrícula</th></tr>
+    </thead>
+    <tbody>
+      {% for matricula in alunos %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ matricula.aluno.usuario.nome }}</td>
+          <td>{{ matricula.aluno.ra }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="3">Nenhum aluno matriculado nesta turma.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
