@@ -2,9 +2,71 @@
 
 {% block titulo %}Frequência{% endblock %}
 
-{% block conteudo_admin %}
+{% block conteudo_aluno %}
+  {% macro pct(valor) -%}{{ ('%.1f'|format(valor))|replace('.', ',') }}%{%- endmacro %}
+
   <h1>Frequência</h1>
+
+  {% if not matricula %}
+    <p class="mensagem erro">Você ainda não está matriculado em nenhuma turma.</p>
+  {% else %}
+    <p>
+      {{ matricula.aluno.usuario.nome }} | Matrícula nº {{ matricula.aluno.ra }} |
+      {{ matricula.turma.nome }} / {{ matricula.turma.ano_letivo }}
+    </p>
+
+    {% include 'aluno/_seletor.html' %}
+
+    {% if geral.total %}
+      <p>
+        Frequência geral: <strong class="{{ 'abaixo' if geral.em_risco }}">{{ pct(geral.percentual) }}</strong>
+        ({{ geral.presencas }} presença(s) e {{ geral.faltas }} falta(s) em {{ geral.total }} aula(s)).
+        <br><small>O mínimo exigido é {{ pct(frequencia_minima) }}.</small>
+      </p>
+    {% endif %}
+
+    <h2>Resumo por disciplina</h2>
+    <table>
+      <thead>
+        <tr><th>Disciplina</th><th>Aulas</th><th>Presenças</th><th>Faltas</th><th>Frequência</th><th>Situação</th></tr>
+      </thead>
+      <tbody>
+        {% for d in disciplinas %}
+          <tr>
+            <td>{{ d.alocacao.disciplina.nome }}</td>
+            <td>{{ d.total }}</td>
+            <td>{{ d.presencas }}</td>
+            <td>{{ d.faltas }}</td>
+            <td class="{{ 'abaixo' if d.em_risco }}">{{ pct(d.percentual) if d.percentual is not none else '—' }}</td>
+            <td>
+              {% if d.percentual is none %}<small>sem chamada</small>
+              {% elif d.em_risco %}<span class="abaixo">Abaixo do mínimo</span>
+              {% else %}Regular{% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6">Sua turma ainda não tem disciplinas cadastradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Registro de aulas</h2>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Disciplina</th><th>Conteúdo</th><th>Situação</th></tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+          <tr>
+            <td>{{ r.aula.data.strftime('%d/%m/%Y') }}</td>
+            <td>{{ r.aula.alocacao.disciplina.nome }}</td>
+            <td>{{ r.aula.conteudo or '—' }}</td>
+            <td class="{{ 'presente' if r.presente else 'falta' }}">{{ 'Presente' if r.presente else 'Falta' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4">Nenhuma chamada registrada ainda.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 {% endblock %}
-
-
-

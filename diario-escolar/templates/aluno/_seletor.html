@@ -1,0 +1,14 @@
+{# Só aparece se o aluno tiver mais de uma matrícula (ex.: anos letivos diferentes). #}
+{% if matriculas|length > 1 %}
+  <form method="get">
+    <label for="matricula">Turma / ano letivo:</label>
+    <select id="matricula" name="matricula">
+      {% for m in matriculas %}
+        <option value="{{ m.id }}" {{ 'selected' if m.id == matricula.id }}>
+          {{ m.turma.nome }} / {{ m.turma.ano_letivo }} ({{ m.status }})
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit">Ver</button>
+  </form>
+{% endif %}

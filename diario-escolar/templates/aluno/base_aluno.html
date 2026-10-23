@@ -1,20 +1,19 @@
 {% extends 'base.html' %}
 
+
 {% block css %}
-  {{ super() }}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/aluno.css') }}">
 {% endblock %}
 
 {% block conteudo %}
 
-  <aside>
-    <nav id="menu-aluno">
-      <a href="{{ url_for('aluno.boletim') }}">Boletim</a>
-      <a href="{{ url_for('aluno.frequencia') }}">Frequência</a>
-    <a href="{{ url_for('aluno.dashboard') }}" target="_self">Início</a>
-    </nav>
-  </aside>
+<aside>
+  <nav id="menu-aluno">
+    <a href="{{ url_for('aluno.dashboard') }}">Início</a>
+    <a href="{{ url_for('aluno.boletim_rota') }}">Boletim</a>
+    <a href="{{ url_for('aluno.frequencia_rota') }}">Frequência</a>
+  </nav>
+</aside>
 
   {% block conteudo_aluno %}{% endblock %}
-
 {% endblock %}
